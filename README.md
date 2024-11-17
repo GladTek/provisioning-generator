@@ -15,6 +15,10 @@ Afterward, this archive can be used to install these modules on another platform
 ### With Karaf commands
 #### <a name="provisioning-generator:generate"></a>provisioning-generator:generate
 Generate an archive in the folder JAHIA_HOME/digital-factory-data/content/tmp/
+#### <a name="provisioning-generator:split-generate"></a>provisioning-generator:split-generate
+Generate an archive in the folder **JAHIA_HOME/digital-factory-data/content/tmp/** but this time with 2 provisioning files and custom Modules Jars 
+- first (provisioning-store.yaml) that can be handled from Jahia Store
+- second (provisioning-files.yaml) that contains other files that are not bundled under **org.jahia.modules** Group ID
 
 **Options:**
 
@@ -23,6 +27,11 @@ Name | alias | Mandatory | Value | Description
 
 
 **Example:**
+Default Generate : 
 
     provisioning-generator:generate
+
+Split Generate :
+
+    provisioning-generator:split-generate
 
