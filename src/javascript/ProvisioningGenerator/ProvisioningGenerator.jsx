@@ -74,8 +74,7 @@ export const ProvisioningGeneratorAdmin = () => {
             } else {
                 setGenerateStatus('error');
             }
-        } catch (err) {
-            console.error('Failed to generate provisioning archive:', err);
+        } catch (_err) {
             setGenerateStatus('error');
         }
     };
@@ -89,8 +88,7 @@ export const ProvisioningGeneratorAdmin = () => {
         setGenerateStatus(null);
         try {
             await deleteArchive();
-        } catch (err) {
-            console.error('Failed to delete provisioning archive:', err);
+        } catch (_err) {
             setGenerateStatus('error');
         }
     };

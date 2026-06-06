@@ -21,6 +21,11 @@ public class GenerateCommand implements Action {
     public Object execute() throws Exception {
         final SettingsBean settingsBean = BundleUtils.getOsgiService(SettingsBean.class, null);
         final ProvisioningGeneratorService service = BundleUtils.getOsgiService(ProvisioningGeneratorService.class, null);
+        if (settingsBean == null || service == null) {
+            logger.error("Required OSGi services are not available");
+            return null;
+        }
+
         final File generatedFile = service.generate(settingsBean.getTmpContentDiskPath());
         logger.info("Provisioning archive generated at: {}", generatedFile.getAbsolutePath());
         return generatedFile.getAbsolutePath();
