@@ -14,7 +14,7 @@ describe('Provisioning Generator', () => {
         headers: {'Content-Type': 'application/json', Origin: Cypress.config('baseUrl')},
         auth: {
             username: Cypress.env('SUPER_USER_LOGIN') || 'root',
-            password: Cypress.env('SUPER_USER_PASSWORD') || 'root1234'
+            password: Cypress.env('SUPER_USER_PASSWORD')
         },
         failOnStatusCode: false
     };
@@ -43,7 +43,7 @@ describe('Provisioning Generator', () => {
             headers: {'Content-Type': 'application/yaml'},
             auth: {
                 username: Cypress.env('SUPER_USER_LOGIN') || 'root',
-                password: Cypress.env('SUPER_USER_PASSWORD') || 'root1234'
+                password: Cypress.env('SUPER_USER_PASSWORD')
             },
             body: '- karafCommand: "log:log \'provisioning-generator cypress test\'"'
         }).its('status').should('eq', 200);

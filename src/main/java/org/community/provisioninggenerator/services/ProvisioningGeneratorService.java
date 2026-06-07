@@ -51,11 +51,11 @@ public class ProvisioningGeneratorService {
                         try {
                             if (file.createNewFile()) {
                                 writeZip(file, filename, session);
-                            } else if (logger.isErrorEnabled()) {
-                                logger.error("Impossible to create file {}", filename);
+                            } else {
+                                throw new IOException("Impossible to create file " + filename);
                             }
                         } catch (IOException e) {
-                            logger.error("Error when creating zip", e);
+                            throw new RepositoryException("Error when creating zip", e);
                         }
                         return null;
                     });
