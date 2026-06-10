@@ -3,6 +3,7 @@ package org.community.provisioninggenerator.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.community.provisioninggenerator.BundleInstall;
+import org.community.provisioninggenerator.util.EntryNameSanitizer;
 import org.jahia.api.Constants;
 import org.jahia.api.content.JCRTemplate;
 import org.jahia.api.templates.JahiaTemplateManagerService;
@@ -34,6 +35,9 @@ public class ProvisioningGeneratorService {
     private static final Logger logger = LoggerFactory.getLogger(ProvisioningGeneratorService.class);
     private static final String QUERY = "SELECT * FROM [jnt:moduleManagementBundle] WHERE ISDESCENDANTNODE('/module-management/')"
             + " AND [j:groupId]='%s' AND [j:symbolicName]='%s' AND [j:version]='%s'";
+    private static final String EXPORT_FILE_PREFIX = "/modulesExport";
+    private static final String EXPORT_FILE_SUFFIX = ".zip";
+    private static final String MANIFEST_ENTRY_NAME = "provisioning.yaml";
 
     private volatile boolean generating = false;
 
@@ -42,9 +46,12 @@ public class ProvisioningGeneratorService {
     }
 
     public File generate(String tmpContentDiskPath) throws RepositoryException {
+        if (tmpContentDiskPath == null || tmpContentDiskPath.trim().isEmpty()) {
+            throw new IllegalArgumentException("tmpContentDiskPath must not be null or blank");
+        }
         generating = true;
         try {
-            final String filename = tmpContentDiskPath + "/modulesExport" + System.currentTimeMillis() + ".zip";
+            final String filename = tmpContentDiskPath + EXPORT_FILE_PREFIX + System.currentTimeMillis() + EXPORT_FILE_SUFFIX;
             final File file = new File(filename);
             BundleUtils.getOsgiService(JCRTemplate.class, null).doExecuteWithSystemSessionAsUser(
                     null, Constants.EDIT_WORKSPACE, null, session -> {
@@ -86,7 +93,7 @@ public class ProvisioningGeneratorService {
                             logger.error("Impossible to retrieve module", e);
                         }
                     });
-            final ZipEntry zipEntry = new ZipEntry("provisioning.yaml");
+            final ZipEntry zipEntry = new ZipEntry(MANIFEST_ENTRY_NAME);
             zipOutputStream.putNextEntry(zipEntry);
             zipOutputStream.write(objectMapper.writer().writeValueAsBytes(bundleKeys));
             zipOutputStream.closeEntry();
@@ -95,7 +102,7 @@ public class ProvisioningGeneratorService {
     }
 
     private void compressNode(JCRNodeWrapper node, ZipOutputStream zipOutputStream, List<BundleInstall> bundleKeys) {
-        final String nodeName = sanitizeEntryName(node.getName());
+        final String nodeName = EntryNameSanitizer.sanitize(node.getName());
         if (nodeName == null) {
             logger.warn("Skipping node with unsafe name");
             return;
@@ -114,15 +121,5 @@ public class ProvisioningGeneratorService {
         } catch (IOException | RepositoryException e) {
             logger.error("Impossible to retrieve module content", e);
         }
-    }
-
-    private static String sanitizeEntryName(String name) {
-        if (name == null || name.isEmpty()) {
-            return null;
-        }
-        if (name.contains("..") || name.contains("/") || name.contains("\\") || name.startsWith("/")) {
-            return null;
-        }
-        return name;
     }
 }
