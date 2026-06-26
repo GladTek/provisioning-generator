@@ -18,10 +18,13 @@ Once installed, the module adds a **Provisioning Generator** entry under **Serve
 
 From this page you can:
 
-- **Generate** a new provisioning archive. A loading animation is displayed while the archive is being built. Navigating away and coming back to the page will still show the loading state until generation completes.
+- **Select modules** — a searchable, grouped checklist lets you pick which active modules to include. Modules are grouped by group ID and can be filtered by name, symbolic name, or group ID. Use **Select all** / **Deselect all** to manage the full list or a filtered subset.
+- **Generate** a new provisioning archive from the selected modules. The button shows the number of selected modules. A loading animation is displayed while the archive is being built.
 - **Download** the generated archive (`provisioning-export.zip`) once it is ready.
 - **Delete** the archive from the server.
 - See the **date and time** the archive was last generated.
+
+> **Note:** The selective module generation feature (searchable checklist, per-module selection) was added in this fork for personal use and is not part of the upstream Jahia module.
 
 ### With Karaf commands
 
