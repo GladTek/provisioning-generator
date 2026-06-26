@@ -2,8 +2,9 @@
   "label": {
     "menu_entry": "Provisioning Generator",
     "title": "Provisioning Generator",
-    "description": "Generate a ZIP archive of all active Jahia modules, ready to be used with the provisioning API.",
-    "generate": "Generate archive",
+    "description": "Generate a ZIP archive of selected active Jahia modules, ready to be used with the provisioning API.",
+    "generate": "Generate ({{count}} modules)",
+    "generate_one": "Generate (1 module)",
     "generating": "Generating archive, please wait…",
     "success": "Archive generated successfully.",
     "error": "An error occurred while generating the archive.",
@@ -12,6 +13,14 @@
     "delete": "Delete archive",
     "deleteConfirm": "Are you sure you want to delete the provisioning archive? This action cannot be undone.",
     "deleting": "Deleting archive…",
-    "createdAt": "Generated on {{date}}"
+    "createdAt": "Generated on {{date}}",
+    "searchPlaceholder": "Search by name, group ID, or identifier…",
+    "searchAriaLabel": "Search modules",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "noModules": "No modules match your search",
+    "selectionCount": "{{count}} of {{total}} modules selected",
+    "modulesLoadError": "Failed to load the module list.",
+    "retry": "Retry"
   }
 }

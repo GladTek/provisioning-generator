@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collections;
 
 @Command(scope = "provisioning-generator", name = "generate", description = "Generate provisioning file of all Jahia modules currently running")
 @Service
@@ -26,7 +27,7 @@ public class GenerateCommand implements Action {
             return null;
         }
 
-        final File generatedFile = service.generate(settingsBean.getTmpContentDiskPath());
+        final File generatedFile = service.generate(settingsBean.getTmpContentDiskPath(), Collections.emptySet());
         logger.info("Provisioning archive generated at: {}", generatedFile.getAbsolutePath());
         return generatedFile.getAbsolutePath();
     }

@@ -1,0 +1,8 @@
+query ListModules {
+    provisioningGeneratorListModules {
+        symbolicName
+        name
+        groupId
+        version
+    }
+}

@@ -25,7 +25,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -45,10 +47,11 @@ public class ProvisioningGeneratorService {
         return generating;
     }
 
-    public File generate(String tmpContentDiskPath) throws RepositoryException {
+    public File generate(String tmpContentDiskPath, Set<String> moduleFilter) throws RepositoryException {
         if (tmpContentDiskPath == null || tmpContentDiskPath.trim().isEmpty()) {
             throw new IllegalArgumentException("tmpContentDiskPath must not be null or blank");
         }
+        final Set<String> filter = (moduleFilter == null) ? Collections.emptySet() : moduleFilter;
         generating = true;
         try {
             final String filename = tmpContentDiskPath + EXPORT_FILE_PREFIX + System.currentTimeMillis() + EXPORT_FILE_SUFFIX;
@@ -57,7 +60,7 @@ public class ProvisioningGeneratorService {
                     null, Constants.EDIT_WORKSPACE, null, session -> {
                         try {
                             if (file.createNewFile()) {
-                                writeZip(file, filename, session);
+                                writeZip(file, filename, session, filter);
                             } else {
                                 throw new IOException("Impossible to create file " + filename);
                             }
@@ -72,14 +75,20 @@ public class ProvisioningGeneratorService {
         }
     }
 
-    private void writeZip(File file, String filename, JCRSessionWrapper session) throws IOException {
+    private void writeZip(File file, String filename, JCRSessionWrapper session, Set<String> moduleFilter) throws IOException {
         try (FileOutputStream os = new FileOutputStream(file);
              ZipOutputStream zipOutputStream = new ZipOutputStream(os)) {
+            if (moduleFilter != null && !moduleFilter.isEmpty()) {
+                logger.info("Module filter active, including only: {}", moduleFilter);
+            }
             logger.info("Module Export started, this may take some time");
             final ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
             final List<BundleInstall> bundleKeys = new ArrayList<>();
             BundleUtils.getOsgiService(JahiaTemplateManagerService.class, null).getAvailableTemplatePackages().stream()
-                    .filter(JahiaTemplatesPackage::isActiveVersion).forEachOrdered(module -> {
+                    .filter(JahiaTemplatesPackage::isActiveVersion)
+                    .filter(module -> moduleFilter == null || moduleFilter.isEmpty()
+                            || moduleFilter.contains(module.getBundle().getSymbolicName()))
+                    .forEachOrdered(module -> {
                         logger.info(module.getBundleKey());
                         final String query = String.format(QUERY, module.getGroupId(),
                                 module.getBundle().getSymbolicName(), module.getBundle().getVersion().toString());

@@ -35,7 +35,7 @@ describe('Provisioning Generator – UI', () => {
         // First admin UI load of the suite: allow extra time for the Jahia admin shell to mount
         // the federated provisioning-generator remote module and activate the SPA route.
         cy.contains('h2', 'Provisioning Generator', {timeout: 30000}).should('be.visible');
-        cy.contains('Generate a ZIP archive of all active Jahia modules').should('be.visible');
+        cy.contains('Generate a ZIP archive of selected active Jahia modules').should('be.visible');
         cy.contains('button', 'Generate archive').should('be.visible');
         cy.contains('Generated on').should('not.exist');
         cy.contains('a', 'Download provisioning-export.zip').should('not.exist');
@@ -94,5 +94,61 @@ describe('Provisioning Generator – UI', () => {
         cy.contains('a', 'Download provisioning-export.zip', {timeout: 30000}).should('not.exist');
         cy.contains('Generated on').should('not.exist');
         cy.contains('button', 'Generate archive').should('be.visible');
+    });
+
+    it('renders the module list grouped by groupId', () => {
+        cy.login();
+        cy.visit(adminPath);
+        cy.contains('h2', 'Provisioning Generator', {timeout: 30000}).should('be.visible');
+        // At least one group header must be visible
+        cy.get('[class*="pg_group_header"]').should('have.length.greaterThan', 0);
+        // At least one module row must be visible
+        cy.get('[class*="pg_module_row"]').should('have.length.greaterThan', 0);
+    });
+
+    it('search filters the module list', () => {
+        cy.login();
+        cy.visit(adminPath);
+        cy.contains('h2', 'Provisioning Generator', {timeout: 30000}).should('be.visible');
+        cy.get('[class*="pg_module_list"]').should('be.visible');
+        const totalRows = () => cy.get('[class*="pg_module_row"]');
+        totalRows().its('length').then(total => {
+            // Type a search term unlikely to match all modules
+            cy.get('[class*="pg_search_input"]').type('jahia');
+            cy.get('[class*="pg_module_row"]').its('length').should('be.lessThan', total);
+        });
+    });
+
+    it('deselect all disables the generate button', () => {
+        cy.login();
+        cy.visit(adminPath);
+        cy.contains('h2', 'Provisioning Generator', {timeout: 30000}).should('be.visible');
+        cy.get('[class*="pg_module_list"]').should('be.visible');
+        cy.contains('button', 'Deselect all').click();
+        cy.contains('button', /Generate/).should('be.disabled');
+    });
+
+    it('select all re-enables the generate button', () => {
+        cy.login();
+        cy.visit(adminPath);
+        cy.contains('h2', 'Provisioning Generator', {timeout: 30000}).should('be.visible');
+        cy.get('[class*="pg_module_list"]').should('be.visible');
+        cy.contains('button', 'Deselect all').click();
+        cy.contains('button', /Generate/).should('be.disabled');
+        cy.contains('button', 'Select all').click();
+        cy.contains('button', /Generate/).should('not.be.disabled');
+    });
+
+    it('selecting one module and generating creates an archive', () => {
+        cy.login();
+        cy.visit(adminPath);
+        cy.contains('h2', 'Provisioning Generator', {timeout: 30000}).should('be.visible');
+        cy.get('[class*="pg_module_list"]').should('be.visible');
+        // Deselect all, then select only the first module
+        cy.contains('button', 'Deselect all').click();
+        cy.get('[class*="pg_module_row"]').first().find('input[type="checkbox"]').check();
+        cy.contains('button', /Generate/).should('not.be.disabled').click();
+        cy.contains('Archive generated successfully.', {timeout: 120000}).should('be.visible');
+        cy.contains('Generated on').should('be.visible');
     });
 });

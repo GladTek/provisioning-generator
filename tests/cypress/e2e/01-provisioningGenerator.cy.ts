@@ -7,6 +7,8 @@ describe('Provisioning Generator', () => {
     const deleteArchive: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/mutation/deleteArchive.graphql');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const getArchiveInfo: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/query/getArchiveInfo.graphql');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const listModules: DocumentNode = require('graphql-tag/loader!../fixtures/graphql/query/listModules.graphql');
 
     const graphqlRequestOptions = {
         method: 'POST' as const,
@@ -60,6 +62,39 @@ describe('Provisioning Generator', () => {
             ...graphqlRequestOptions,
             body: {query: 'query { provisioningGeneratorIsGenerating }'}
         }).its('body.data.provisioningGeneratorIsGenerating').should('eq', false);
+    });
+
+    it('listModules returns at least one active module with required fields', () => {
+        cy.apollo({query: listModules})
+            .its('data.provisioningGeneratorListModules')
+            .should('be.an', 'array')
+            .and('have.length.greaterThan', 0)
+            .then((mods: Array<{symbolicName: string; name: string; groupId: string; version: string}>) => {
+                const first = mods[0];
+                expect(first).to.have.property('symbolicName').that.is.a('string').and.is.not.empty;
+                expect(first).to.have.property('name').that.is.a('string').and.is.not.empty;
+                expect(first).to.have.property('groupId').that.is.a('string').and.is.not.empty;
+                expect(first).to.have.property('version').that.is.a('string').and.is.not.empty;
+            });
+    });
+
+    it('generate with a specific module list produces an archive', () => {
+        // First get a real symbolic name to use as filter
+        cy.apollo({query: listModules})
+            .its('data.provisioningGeneratorListModules')
+            .then((mods: Array<{symbolicName: string}>) => {
+                const symbolicName = mods[0].symbolicName;
+                cy.apollo({
+                    mutation: generateArchive,
+                    variables: {modules: [symbolicName]}
+                })
+                    .its('data.provisioningGeneratorGenerate')
+                    .should('eq', true);
+
+                cy.apollo({query: getArchiveInfo})
+                    .its('data.provisioningGeneratorArchiveInfo.createdAt')
+                    .should('be.a', 'string');
+            });
     });
 
     it('generates a provisioning archive and exposes a creation date', () => {

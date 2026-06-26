@@ -20,6 +20,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @GraphQLTypeExtension(DXGraphQLProvider.Mutation.class)
 @GraphQLName("ProvisioningGeneratorMutations")
@@ -36,9 +40,12 @@ public class ProvisioningGeneratorMutationExtension {
 
     @GraphQLField
     @GraphQLName("provisioningGeneratorGenerate")
-    @GraphQLDescription("Generates a provisioning ZIP archive of all active Jahia modules and stores it in JCR")
+    @GraphQLDescription("Generates a provisioning ZIP archive of selected active Jahia modules and stores it in JCR")
     @GraphQLRequiresPermission("provisioningGeneratorAdmin")
-    public static Boolean generate() {
+    public static Boolean generate(
+            @GraphQLName("modules")
+            @GraphQLDescription("Symbolic names of modules to include. Omit or pass empty list to include all.")
+            List<String> modules) {
         final SettingsBean settingsBean = BundleUtils.getOsgiService(SettingsBean.class, null);
         final ProvisioningGeneratorService service = BundleUtils.getOsgiService(ProvisioningGeneratorService.class, null);
 
@@ -47,9 +54,13 @@ public class ProvisioningGeneratorMutationExtension {
             return Boolean.FALSE;
         }
 
+        final Set<String> moduleFilter = (modules != null && !modules.isEmpty())
+                ? new HashSet<>(modules)
+                : Collections.emptySet();
+
         File zipFile = null;
         try {
-            zipFile = service.generate(settingsBean.getTmpContentDiskPath());
+            zipFile = service.generate(settingsBean.getTmpContentDiskPath(), moduleFilter);
             writeToJcr(zipFile);
             return Boolean.TRUE;
         } catch (RepositoryException e) {

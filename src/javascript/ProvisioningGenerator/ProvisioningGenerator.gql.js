@@ -9,9 +9,20 @@ export const GET_ARCHIVE_INFO = gql`
     }
 `;
 
+export const GET_MODULE_LIST = gql`
+    query ProvisioningGeneratorListModules {
+        provisioningGeneratorListModules {
+            symbolicName
+            name
+            groupId
+            version
+        }
+    }
+`;
+
 export const GENERATE_PROVISIONING_ARCHIVE = gql`
-    mutation GenerateProvisioningArchive {
-        provisioningGeneratorGenerate
+    mutation GenerateProvisioningArchive($modules: [String]) {
+        provisioningGeneratorGenerate(modules: $modules)
     }
 `;
 
